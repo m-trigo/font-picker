@@ -1,7 +1,6 @@
 /**
  * Program Name: FontPicker.java
- * Purpose: Displays a list of fonts available on the current system.
- * 			Holding the left mouse button brings up a window with sample text.
+ * Purpose: Displays a list of fonts available in the current system with Java.Swing.
  * Author: Trigo, Murilo
  * Date: July 09, 2017
  */
@@ -16,11 +15,14 @@ public class FontPicker extends JFrame
 	public static void main(String[] args) { new FontPicker(); }
 	
 	private static final int WINDOW_WIDTH = 800;
-	private static final int WINDOW_HEIGHT = 420;
+	private static final int WINDOW_HEIGHT = 620;
 	private static final int FONT_SIZE = 40;
 	private static final int SMALL_FONT_SIZE = 24;
 	private static final int SCROLL_SPEED_FACTOR = FONT_SIZE;
 	private static final String WINDOW_TITLE = " -- Fonts Available in this System -- ";
+
+	private final static Color SELECT_HIGHLIGHT_COLOR = new Color(240, 248, 244);
+	private final static Color DEFAULT_FONTPANEL_COLOR = Color.WHITE;
 	
 	private static final String EXAMPLE_PHRASE = "The quick brown fox jumps over the lazy dog"; 
 	private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -29,13 +31,13 @@ public class FontPicker extends JFrame
 	private static final String SHOWCASE_STRING = SYMBOLS + "\n" + DIGITS 
 			+ "\n" + ALPHABET.toLowerCase() + "\n" + ALPHABET + "\n" + EXAMPLE_PHRASE;
 	
-	private ExampleWindow exampleWindow;
 	private static final Border BORDER = BorderFactory.createLineBorder(Color.BLACK, 2, true);
 	private static final int BORDER_WIDTH = 20;
 	private static final Border MARGIN = 
 			BorderFactory.createEmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
 	
-	private static final double POPUP_MIN_DISTANCE_FROM_EDGE_IN_SCREEN_PERCENTAGE = 0.05;
+	private JTextArea exampleTextArea;
+	private JTextField selectedFontTextField;
 	
 	public FontPicker()
 	{
@@ -43,47 +45,46 @@ public class FontPicker extends JFrame
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 		
+		// Dummy JTextField to avoid a null pointer reference the first time a font is selected
+		// without having the selection highlight algorithm check for the special case
+		selectedFontTextField = new JTextField(); 
+		
 		JPanel displayPanel = new JPanel();
-		displayPanel.setLayout(new BorderLayout()); // Will force sub-panels to be take the full length of the container
+		displayPanel.setLayout(new GridLayout(2, 1));
 		
 		String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-
-		JPanel fontListPanel = new JPanel(new GridLayout(simbolicsFontsCount(fonts), 1));
-
+		
+		
+		// Mouse-click Logic
 		MouseListener mouseListener = new MouseListener()
 		{
-			public void mousePressed(MouseEvent event) 
+			public void mouseClicked(MouseEvent event) 
 			{
-				if (SwingUtilities.isLeftMouseButton(event))
+				JTextField textFieldSource = (JTextField)event.getSource();
+				
+				if (textFieldSource == selectedFontTextField)
 				{
-					JTextField textFieldSource = (JTextField)event.getSource();					
-					
-					// Necessary to avoid multiple exampleWindows
-					// Essentially doing double-duty as an isExampleWindowActive boolean
-					if (exampleWindow == null) 
-					{
-						exampleWindow = renderExampleWindowForFont(textFieldSource.getFont().getName());
-					}
+					return; // Nothing needs to happen when clicking an already selected font
 				}
+				
+				selectedFontTextField.setBackground(DEFAULT_FONTPANEL_COLOR);
+				selectedFontTextField = textFieldSource;
+				textFieldSource.setBackground(SELECT_HIGHLIGHT_COLOR);
+				renderExampleWithFont(exampleTextArea, textFieldSource.getFont().getName());
 			}
 			
-			public void mouseReleased(MouseEvent event) 
-			{
-				if (exampleWindow != null)
-				{
-					exampleWindow.dispose();
-					exampleWindow = null; // Necessary to signal a window isn't currently open
-				}
-			}
-			
-			public void mouseClicked(MouseEvent arg0) {}
+			public void mousePressed(MouseEvent event) {}	
+			public void mouseReleased(MouseEvent arg0) {}		
 			public void mouseEntered(MouseEvent arg0) {}
 			public void mouseExited(MouseEvent arg0) {}
 		};
 		
+		
+		JPanel fontListPanel = new JPanel(new GridLayout(simbolicsFontsCount(fonts), 1));
+
 		// This loop is so inefficient it hurts
 		// It's the reason the JWindow takes a few seconds to pop up after the program's execution
-		// An alternative method using getListCellRendererComponent is possible, however.
+		// Do note that an alternative method using getListCellRendererComponent is possible.
 		for(int i = 0; i < fonts.length; i++) 
 		{
 			String fontName = fonts[i];
@@ -102,12 +103,23 @@ public class FontPicker extends JFrame
 			textField.addMouseListener(mouseListener);
 		}
 		
-		JScrollPane scrollPane = new JScrollPane(fontListPanel);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_FACTOR);
-		displayPanel.add(scrollPane);
+		JScrollPane fontListScrollPane = new JScrollPane(fontListPanel);
+		fontListScrollPane.setBorder(BORDER);
+		fontListScrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_SPEED_FACTOR);
+		displayPanel.add(fontListScrollPane);
+			
 		
-		this.add(displayPanel);
+		exampleTextArea = new JTextArea();
+		exampleTextArea.setEditable(false);
+		exampleTextArea.setBorder(MARGIN);
+		JScrollPane exampleScrollPane = new JScrollPane(exampleTextArea);
+		exampleScrollPane.setBorder(BORDER);
+		displayPanel.add(exampleScrollPane);
 
+		
+		this.add(displayPanel);		
+		
+		
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);	
 	}
@@ -132,53 +144,10 @@ public class FontPicker extends JFrame
 		return total;
 	}
 	
-	private ExampleWindow renderExampleWindowForFont(String fontName)
+	private void renderExampleWithFont(JTextArea textArea, String fontName)
 	{
-		return new ExampleWindow(fontName);
+		textArea.setFont(new Font(fontName, Font.PLAIN, SMALL_FONT_SIZE));
+		textArea.setText("[ " + fontName + " - size " + SMALL_FONT_SIZE + " ]\n\n" + SHOWCASE_STRING);
 	}
 	
-	private class ExampleWindow extends JFrame
-	{
-		public ExampleWindow(String fontName)
-		{
-			super(fontName);
-			this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			this.setUndecorated(true);
-
-			JPanel panel = new JPanel(new BorderLayout());
-			panel.setBorder(BORDER);
-			
-			JTextArea textArea = new JTextArea();
-			textArea.setText("[ " + fontName + " ]" + "\n\n" + SHOWCASE_STRING);
-			textArea.setEditable(false);
-			textArea.setBorder(MARGIN);
-			textArea.setFont(new Font(fontName, Font.PLAIN, SMALL_FONT_SIZE));
-			
-			panel.add(textArea);
-			this.add(panel);
-			this.pack();
-			
-			Point mousePosition = MouseInfo.getPointerInfo().getLocation();	
-			
-			// Pop-up reposition
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			double minHorizontalDistance = screenSize.getWidth() * POPUP_MIN_DISTANCE_FROM_EDGE_IN_SCREEN_PERCENTAGE;
-			double minVerticalDistance = screenSize.getHeight() * POPUP_MIN_DISTANCE_FROM_EDGE_IN_SCREEN_PERCENTAGE;
-			
-			// Horizontal adjustment
-			if (mousePosition.x - this.getWidth() >=  minHorizontalDistance)
-			{
-				mousePosition = new Point(mousePosition.x - this.getWidth(), mousePosition.y);
-			}
-			
-			// Vertical adjustment
-			if (mousePosition.y - this.getHeight() >= minVerticalDistance)
-			{
-				mousePosition = new Point(mousePosition.x, mousePosition.y - this.getHeight());
-			}
-			
-			this.setLocation(mousePosition);
-			this.setVisible(true);
-		}
-	}
-}
+}// FontPicker
