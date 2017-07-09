@@ -1,8 +1,7 @@
 /**
  * Program Name: FontPicker.java
- * Purpose: Creates a list of fonts available on the system.
- * 			Right-clicking while bring up a menu will example displays
- * 			while the right mouse button is being held.
+ * Purpose: Displays a list of fonts available on the current system.
+ * 			Holding the left mouse button brings up a window with sample text.
  * Author: Trigo, Murilo
  * Date: July 09, 2017
  */
