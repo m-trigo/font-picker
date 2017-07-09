@@ -1,2 +1,4 @@
-# font-picker
-A GUI font rendering application in Java
+# Font Picker
+
+Displays a list of fonts available on the current system.
+Holding right click brings up a window with sample text.
