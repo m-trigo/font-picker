@@ -7,4 +7,4 @@
 #### The latest version of Java can be found [here](https://java.com/en/download/)
 
 
-![alt text](https://github.com/sildurend/font-picker/blob/master/data/application-screenshot.PNG "Font Picker Image")
+![alt text](https://github.com/sildurend/font-picker/blob/master/data/repo-cover.PNG?raw=true "Font Picker Image")
