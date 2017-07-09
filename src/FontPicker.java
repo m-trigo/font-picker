@@ -12,6 +12,9 @@ import java.awt.event.*;
 
 public class FontPicker extends JFrame
 {
+	private static final long serialVersionUID = 1L;
+	private static final String VERSION = "v2.1";
+
 	public static void main(String[] args) { new FontPicker(); }
 	
 	private static final int WINDOW_WIDTH = 800;
@@ -19,7 +22,7 @@ public class FontPicker extends JFrame
 	private static final int FONT_SIZE = 40;
 	private static final int SMALL_FONT_SIZE = 24;
 	private static final int SCROLL_SPEED_FACTOR = FONT_SIZE;
-	private static final String WINDOW_TITLE = " -- Fonts Available in this System -- ";
+	private static final String WINDOW_TITLE = " Font Picker " + VERSION;
 
 	private final static Color SELECT_HIGHLIGHT_COLOR = new Color(240, 248, 244);
 	private final static Color DEFAULT_FONTPANEL_COLOR = Color.WHITE;
@@ -38,12 +41,21 @@ public class FontPicker extends JFrame
 	
 	private JTextArea exampleTextArea;
 	private JTextField selectedFontTextField;
+
+	private final static String DEFAULT_IMAGE_PATH = "./data/font-picker-icon.png";
 	
 	public FontPicker()
 	{
 		super(WINDOW_TITLE);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+		
+		ImageIcon img = new ImageIcon(DEFAULT_IMAGE_PATH);
+
+		if (img != null)
+		{
+			this.setIconImage(img.getImage());
+		}
 		
 		// Dummy JTextField to avoid a null pointer reference the first time a font is selected
 		// without having the selection highlight algorithm check for the special case
@@ -121,9 +133,10 @@ public class FontPicker extends JFrame
 		
 		
 		this.setLocationRelativeTo(null);
-		this.setVisible(true);	
-	}
+		this.setVisible(true);
 		
+	}// FontPicker constructor
+
 	private boolean isSymbolicFont(String fontName)
 	{
 		Font font = new Font(fontName, Font.PLAIN, FONT_SIZE);
